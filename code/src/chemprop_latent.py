@@ -44,7 +44,7 @@ def build_mixture_latent_features_chemprop(
     smi_cols: list[str],
     conc_cols: list[str],
     target_col: str,
-    latent_fn,  # like chemprop_latent_space
+    latent_fn,  
     latent_fn_args: dict = None
 ) -> tuple[np.ndarray, np.ndarray]:
     """

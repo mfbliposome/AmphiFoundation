@@ -891,9 +891,6 @@ def concentration_space_plot(df):
     )
     fig.show()
 
-    import numpy as np
-
-import numpy as np
 
 def prepare_dispense_df_model(model, x_smi, df_new, df_info, prob_range=(0.7, 0.9), sample_n=10, random_state=None):
     """
