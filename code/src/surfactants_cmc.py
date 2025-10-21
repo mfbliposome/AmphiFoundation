@@ -30,7 +30,7 @@ def get_train_data(df_data):
 
 def train_model(data, property='pCMC'):
     time_str = datetime.now().strftime('%Y%m%d_%H')
-    save_dir = f'../results/{property}_{time_str}'
+    save_dir = f'../../results/{property}_{time_str}'
     os.makedirs(save_dir, exist_ok=True)
     # Split the dataframe
     train_df, test_df = train_test_split(
