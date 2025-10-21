@@ -12,16 +12,8 @@ from src.utils import get_latent_space, run_classifier, run_classifier_update
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.metrics import auc
 
-# from models.smi_ted.smi_ted_light.load import load_smi_ted
-# from xgboost import XGBClassifier
-# from sklearn.decomposition import PCA
-# from sklearn.metrics import confusion_matrix
-# from sklearn.metrics import roc_auc_score, roc_curve
 
 def get_sample_fromGP(model_path, info_path, n_samples = 1000, feature='conc7', save_file=False, random_seed=42):
-    # model_path = '/Users/haoliu/Documents/GitHub/MicroscopyAnalysis/GPC_model_20240713.pkl'
-    # with open(model_path, 'rb') as file:
-    #     model_gp = pickle.load(file)
     
     model_gp = joblib.load(model_path)
 
@@ -34,16 +26,14 @@ def get_sample_fromGP(model_path, info_path, n_samples = 1000, feature='conc7', 
                         [5., 5., 5., 5., 5., 1.5, 1.0]])
     bounds = torch.log1p(bounds)
 
-    # Sample 1000 points uniformly within bounds
-    # n_samples = 1000
+    # Sample n_samples points uniformly within bounds
     dim = bounds.shape[1]
     low, high = bounds[0].numpy(), bounds[1].numpy()
 
     X_sampled = np.random.uniform(low=low, high=high, size=(n_samples, dim))
 
     # Predict class probabilities or labels
-    # If you want probabilities: probs = model.predict_proba(X_sampled)
-    # If you want class labels:
+    # probabilities: probs = model.predict_proba(X_sampled)
     y_sampled = model_gp.predict(X_sampled)
 
     # Combine into final dataset
@@ -52,7 +42,7 @@ def get_sample_fromGP(model_path, info_path, n_samples = 1000, feature='conc7', 
     df_sampled['label'] = y_sampled
 
     df = df_sampled.copy()
-    # Step 2: Create mapping from df_input_update_ori column names to df_info["Name"]
+    # Create mapping from df_sampled column names to df_info["Name"]
     column_to_name = {
         'feature_1': 'Decanoic acid',
         'feature_2': 'Decanoate',
@@ -63,10 +53,10 @@ def get_sample_fromGP(model_path, info_path, n_samples = 1000, feature='conc7', 
         'feature_7': 'Glycerol monodecanoate'
     }
 
-    # Step 3: Get SMILES mapping from df_info
+    # Get SMILES mapping from df_info
     name_to_smiles = dict(zip(df_info['Name'], df_info['SMILES']))
 
-    # Step 4: Construct new dataframe
+    # Construct new dataframe
     new_data = {}
 
     for col in df.columns[:-1]:  # Skip num_vesicles
@@ -75,10 +65,9 @@ def get_sample_fromGP(model_path, info_path, n_samples = 1000, feature='conc7', 
         new_data[f"{col}_SMILES"] = [smiles] * len(df)
         new_data[f"{col}_Concentration"] = df[col]
 
-    # Step 5: Add num_vesicles
+    # Add num_vesicles
     new_data['num_vesicles'] = df['label']
 
-    # Step 6: Create the final dataframe
     df_structured = pd.DataFrame(new_data)
 
     # Rename columns to the desired format
@@ -96,12 +85,12 @@ def get_sample_fromGP(model_path, info_path, n_samples = 1000, feature='conc7', 
     # Apply the new column names
     df_structured.columns = new_column_names
 
-    df1 = df_structured # Dataset with full features
+    df1 = df_structured 
 
     if save_file == True:
         # Save results dir
         time_str = datetime.now().strftime('%Y%m%d_%H')
-        save_dir = f'../results/{feature}_{time_str}'
+        save_dir = f'../../results/{feature}_{time_str}'
         os.makedirs(save_dir, exist_ok=True)
         df1.to_csv(os.path.join(save_dir, f'df1.csv'), index=False)
 
@@ -185,7 +174,7 @@ def classifier_performance(df_full, df_deficit, feature='conc7'):
 
     # Save results dir
     time_str = datetime.now().strftime('%Y%m%d_%H')
-    save_dir = f'../results/{feature}_{time_str}'
+    save_dir = f'../../results/{feature}_{time_str}'
     os.makedirs(save_dir, exist_ok=True)
 
     fig, ax = plt.subplots()
@@ -204,18 +193,18 @@ def classifier_performance(df_full, df_deficit, feature='conc7'):
     fig.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
-    # === Save ROC Curve Data ===
+    # Save ROC Curve Data 
     df_roc = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'threshold': threshold})
     df_roc.to_csv(os.path.join(save_dir, f'ROC_data_{feature}_{time_str}.csv'), index=False)
 
-    # === Save y_pred and ROC AUC ===
+    # Save y_pred
     df_pred = pd.DataFrame({
         'y_true': ytrain.values,
         'y_pred_prob': y_pred
     })
     df_pred.to_csv(os.path.join(save_dir, f'y_pred_{feature}_{time_str}.csv'), index=False)
 
-    # === Classification Report & Confusion Matrix ===
+    # Classification Report & Confusion Matrix 
     y_pred_binary = (y_pred >= 0.5).astype(int)
     report = classification_report(ytrain, y_pred_binary, output_dict=True)
     cm_ori = confusion_matrix(ytrain, y_pred_binary)
@@ -237,13 +226,6 @@ def classifier_performance(df_full, df_deficit, feature='conc7'):
     pd.DataFrame(cm, index=['True_0', 'True_1'], columns=['Pred_0', 'Pred_1']).to_csv(
         os.path.join(save_dir, f'confusion_matrix_{feature}_{time_str}.csv')
     )
-
-    # # ===============================
-    # # Save fpr, tpr, threshold to CSV
-    # # ===============================
-    # df_roc = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'threshold': threshold})
-    # csv_path = f'../results/ROC_data_{feature}_{time_str}.csv'
-    # df_roc.to_csv(csv_path, index=False)
 
     return model_clf, y_pred, roc_auc, fpr, tpr, threshold
 
@@ -284,18 +266,18 @@ def classifier_performance_update(df_full, df_deficit, feature='conc7', classifi
     fig.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
 
-    # === Save ROC Curve Data ===
+    # Save ROC Curve Data
     df_roc = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'threshold': threshold})
     df_roc.to_csv(os.path.join(save_dir, f'ROC_data_{feature}_{time_str}.csv'), index=False)
 
-    # === Save y_pred and ROC AUC ===
+    #Save y_pred
     df_pred = pd.DataFrame({
         'y_true': ytest.values,
         'y_pred_prob': y_pred
     })
     df_pred.to_csv(os.path.join(save_dir, f'y_pred_{feature}_{time_str}.csv'), index=False)
 
-    # === Classification Report & Confusion Matrix ===
+    # Classification Report & Confusion Matrix 
     y_pred_binary = (y_pred >= 0.5).astype(int)
     report = classification_report(ytest, y_pred_binary, output_dict=True)
     cm_ori = confusion_matrix(ytest, y_pred_binary)
@@ -317,13 +299,6 @@ def classifier_performance_update(df_full, df_deficit, feature='conc7', classifi
     pd.DataFrame(cm, index=['True_0', 'True_1'], columns=['Pred_0', 'Pred_1']).to_csv(
         os.path.join(save_dir, f'confusion_matrix_{feature}_{time_str}.csv')
     )
-
-    # # ===============================
-    # # Save fpr, tpr, threshold to CSV
-    # # ===============================
-    # df_roc = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'threshold': threshold})
-    # csv_path = f'../results/ROC_data_{feature}_{time_str}.csv'
-    # df_roc.to_csv(csv_path, index=False)
 
     return model_clf, y_pred, roc_auc, fpr, tpr, threshold
 
@@ -355,7 +330,7 @@ def run_multiple(feature_str, model_path, info_path, n_runs=10):
     mean_auc = auc(mean_fpr, mean_tpr)
     std_auc = np.std(auc_list)
 
-    # --- Plot ---
+    # Plot 
     plt.figure(figsize=(7,6))
 
     # Plot all individual ROC curves
@@ -379,7 +354,7 @@ def run_multiple(feature_str, model_path, info_path, n_runs=10):
     plt.title(f"ROC Curves Across {n_runs} Runs (Feature removed: {feature_str})", fontsize=16)
     plt.legend(loc="lower right", fontsize=12)
     plt.tight_layout()
-    plt.savefig(f"../results/roc_curves_{feature_str}.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"../../results/roc_curves_{feature_str}.png", dpi=300, bbox_inches="tight")
     plt.show()
 
 def run_multiple_multi_feature(feature_str, model_path, info_path, n_runs=10):
@@ -409,7 +384,7 @@ def run_multiple_multi_feature(feature_str, model_path, info_path, n_runs=10):
     mean_auc = auc(mean_fpr, mean_tpr)
     std_auc = np.std(auc_list)
 
-    # --- Plot ---
+    # Plot
     plt.figure(figsize=(7,6))
 
     # Plot all individual ROC curves
@@ -433,7 +408,7 @@ def run_multiple_multi_feature(feature_str, model_path, info_path, n_runs=10):
     plt.title(f"Feature removed: {feature_str}", fontsize=16)
     plt.legend(loc="lower right", fontsize=12)
     plt.tight_layout()
-    plt.savefig(f"../results/roc_curves_{feature_str}.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"../../results/roc_curves_{feature_str}.png", dpi=600, bbox_inches="tight")
     plt.show()
 
     

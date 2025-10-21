@@ -33,6 +33,7 @@ def smiles_to_fp(smiles, fp_size=2048):
 
 def mol_to_rdkfp(mol, fp_size=2048):
     """Generate RDK Fingerprints"""
+    
     fp = RDKFingerprint(mol, fpSize=fp_size)
     arr = np.zeros((1,))
     ConvertToNumpyArray(fp, arr)

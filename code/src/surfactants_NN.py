@@ -23,7 +23,6 @@ def run_NN(df, plot=False, seed=None, save_dir=None):
     X = df.iloc[:, :end_column_index].values.astype(np.float32)  # features
     y = df["pCMC"].values.astype(np.float32).reshape(-1, 1)  # target
 
-    # scale features (optional but helps neural nets converge)
     # scale features
     x_scaler = StandardScaler()
     X = x_scaler.fit_transform(X)
@@ -44,7 +43,7 @@ def run_NN(df, plot=False, seed=None, save_dir=None):
     train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
-    # 2. Define Model Class
+    # Define Model Class
     # =======================
     class MLP(nn.Module):
         def __init__(self, input_dim, hidden_dims, dropout=0.2):
@@ -62,7 +61,7 @@ def run_NN(df, plot=False, seed=None, save_dir=None):
         def forward(self, x):
             return self.net(x)
         
-    # 3. Training Function
+    # Training Function
     # =======================
     def train_model(model, train_loader, val_loader, epochs, lr, device):
         criterion = nn.MSELoss()
@@ -143,7 +142,7 @@ def run_NN(df, plot=False, seed=None, save_dir=None):
 
         return mse, r2
     
-    # 4. Hyperparameter Optimization with Optuna
+    # Hyperparameter Optimization with Optuna
     # =======================
     def objective(trial):
         # hyperparameters to search
@@ -198,13 +197,13 @@ def run_NN(df, plot=False, seed=None, save_dir=None):
     rmse = np.sqrt(mse)
     print(f"Final Test MSE: {mse:.4f}, R2: {r2:.4f}")
 
-    # === Collect predictions for saving ===
+    # Collect predictions for saving 
     final_model.eval()
     with torch.no_grad():
         y_pred = y_scaler.inverse_transform(final_model(X_test_tensor.to(device)).cpu().numpy())
         y_true = y_scaler.inverse_transform(y_test)
 
-    # === Save results if save_dir provided ===
+    # Save results if save_dir provided
     if save_dir is not None:
         os.makedirs(save_dir, exist_ok=True)
 
@@ -245,10 +244,6 @@ def run_NN(df, plot=False, seed=None, save_dir=None):
 
     return rmse, r2, y_pred, y_true
 
-# Save more results, plots, export best hyperparameters
-# Usage example
-# rmse, r2 = run_NN(df11, plot=True, seed=42, save_dir="results_run1")
-
 def run_NN_update(df, plot=False, seed=None, save_dir=None):
 
     # Load and Prepare Data
@@ -257,7 +252,6 @@ def run_NN_update(df, plot=False, seed=None, save_dir=None):
     X = df.iloc[:, :end_column_index].values.astype(np.float32)  # features
     y = df["pCMC"].values.astype(np.float32).reshape(-1, 1)  # target
 
-    # scale features (optional but helps neural nets converge)
     # scale features
     x_scaler = StandardScaler()
     X = x_scaler.fit_transform(X)
@@ -278,7 +272,7 @@ def run_NN_update(df, plot=False, seed=None, save_dir=None):
     train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
-    # 2. Define Model Class
+    # Define Model Class
     # =======================
     class MLP(nn.Module):
         def __init__(self, input_dim, hidden_dims, dropout=0.2):
@@ -297,7 +291,7 @@ def run_NN_update(df, plot=False, seed=None, save_dir=None):
         def forward(self, x):
             return self.net(x)
         
-    # 3. Training Function
+    # Training Function
     # =======================
     def train_model(model, train_loader, val_loader, epochs, lr, device):
         criterion = nn.MSELoss()
@@ -378,7 +372,7 @@ def run_NN_update(df, plot=False, seed=None, save_dir=None):
 
         return mse, r2
     
-    # 4. Hyperparameter Optimization with Optuna
+    # Hyperparameter Optimization with Optuna
     # =======================
     def objective(trial):
         # hyperparameters to search
@@ -415,16 +409,7 @@ def run_NN_update(df, plot=False, seed=None, save_dir=None):
                 )
 
             hidden_dims.append(units)
-        # hidden_dims = []
-        # for i in range(hidden_layers):
-        #     if X_train.shape[1] <= 64:  # very low-dim
-        #         units = trial.suggest_int(f"n_units_l{i}", 16, 128, step=16)
-        #     elif X_train.shape[1] <= 512:  # medium
-        #         units = trial.suggest_int(f"n_units_l{i}", 64, 512, step=32)
-        #     else:  # large (768, 2048, ...)
-        #         units = trial.suggest_int(f"n_units_l{i}", 128, 1024, step=64)
-        #     hidden_dims.append(units)
-        # hidden_dims = [trial.suggest_int(f"n_units_l{i}", 16, 512) for i in range(hidden_layers)]
+
         dropout = trial.suggest_float("dropout", 0.2, 0.6)
         lr = trial.suggest_loguniform("lr", 1e-4, 1e-2)
         batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
@@ -465,13 +450,13 @@ def run_NN_update(df, plot=False, seed=None, save_dir=None):
     rmse = np.sqrt(mse)
     print(f"Final Test MSE: {mse:.4f}, R2: {r2:.4f}")
 
-    # === Collect predictions for saving ===
+    # Collect predictions for saving
     final_model.eval()
     with torch.no_grad():
         y_pred = y_scaler.inverse_transform(final_model(X_test_tensor.to(device)).cpu().numpy())
         y_true = y_scaler.inverse_transform(y_test)
 
-    # === Save results if save_dir provided ===
+    # Save results if save_dir provided
     if save_dir is not None:
         os.makedirs(save_dir, exist_ok=True)
 

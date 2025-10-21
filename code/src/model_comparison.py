@@ -39,7 +39,6 @@ def run_classifier_model(xtrain, ytrain, xtest, ytest, random_seed, classifier_a
             
         )
         clf.fit(xtrain, ytrain)
-        # class_weight='balanced'  # Helps if data is imbalanced
         # Predict probabilities for ROC-AUC
         y_pred = clf.predict_proba(xtest)[:, 1]
 
@@ -69,12 +68,12 @@ def evaluate_model_performance(
     Parameters:
     - df: Input DataFrame.
     - label_col: Name of the column for classification labels.
-    - output_csv: File path to save ROC-AUC scores.
-    - n_runs: Number of train/test split runs.
+    - output_csv_name: csv file name.
+    - n_runs: Number of runs.
     - test_size: Fraction of test size.
     - classifier_alter: Passed to `run_classifier_model`.
     - save_plot_name: plot name.
-    - data_type: "surfactants", "binary _system", or "amphiphiles".
+    - data_type: "surfactants", "binary_system", or "amphiphiles".
     - model_type: 'Baseline', 'VICGAE', 'Chemprop', 'Chemeleon', 'SMI-TED'
     - random_state: Base seed to allow reproducibility.
     """
@@ -136,7 +135,6 @@ def evaluate_model_performance(
     for i, tpr in enumerate(interp_tprs):
         ax.plot(all_fpr, tpr, lw=0.8, alpha=0.4, color='gray' )
 
-    # ax.plot(all_fpr, mean_tpr, color='darkorange', lw=2, label=f"Mean ROC (AUC = {np.mean(roc_aucs):.4f})")
     ax.plot(all_fpr, mean_tpr, color='#1f77b4', lw=2, label=f"Mean ROC (AUC = {np.mean(roc_aucs):.4f})")
 
     ax.fill_between(all_fpr, mean_tpr - 2*std_tpr, mean_tpr + 2*std_tpr, color='#aec7e8', alpha=0.2, label='±2 std dev')
@@ -213,8 +211,6 @@ def evaluate_model_performance_regression(
 
         rmse_list.append(rmse)
         r2_list.append(r2)
-
-        # Save the last run for scatter plot
         last_test_y = test_y
         last_pred_y = pred_y
 
@@ -228,7 +224,6 @@ def evaluate_model_performance_regression(
     })
 
     result_df.to_csv(f"../../results/{model_type}_{data_type}_{save_csv_name}.csv", index=False)
-    # print(f"Saved results to {save_csv_name}")
 
     # Boxplots with mean and std annotated
     plot_title = f"{model_type}_{data_type}"
@@ -264,15 +259,13 @@ def evaluate_model_performance_regression(
     plt.scatter(test_y, pred_y, color='#1f77b4', alpha=0.6, edgecolor='#1f77b4')  
     plt.plot([test_y.min(), test_y.max()], 
              [test_y.min(), test_y.max()], 
-             color='#ff7f0e', linestyle='--', lw=1)  # Dark gray line
+             color='#ff7f0e', linestyle='--', lw=1)  
 
     plt.xlabel(f'True {target_col}', fontsize=14)
     plt.ylabel(f'Predicted {target_col}', fontsize=14)
     plt.title(plot_title)
-    # plt.grid(True)
     plt.tight_layout()
     plt.savefig(f"../../results/{model_type}_{data_type}_{save_plot_name}.png", dpi=600)
-    # print(f"Saved scatter plot to {save_scatter_path}")
     plt.show()
 
     return result_df
@@ -285,7 +278,6 @@ def evaluate_model_performance_regression_no_normalization(
     target_col: str = "pCMC",
     stratify_col: Optional[str] = "Surfactant_Type",
     n_runs: int = 10,
-    random_seed: int = 42,
     data_type: str = None,
     model_type: str = None,
     save_csv_name: str = "regression_performance",
@@ -440,7 +432,7 @@ def visualize_latent_space(
             palette = sns.color_palette("Set2", n_colors=len(np.unique(y_encoded)))  # bright/pastel colors
             color_values = np.array(palette)[y_encoded]
 
-    # Optional: if 'Surfactant_Type' is present, use it for coloring
+    # if 'Surfactant_Type' is present, use it for coloring
     if 'Surfactant_Type' in df_total.columns:
         surfactant_labels = df_total['Surfactant_Type']
         encoder = LabelEncoder()
@@ -487,9 +479,9 @@ def visualize_latent_space(
             ax.scatter(X_emb[:, 0], X_emb[:, 1], c=color_values, edgecolor='k', alpha=0.7)
 
             unique_labels = np.unique(y)
-            if len(unique_labels) <= 20:  # avoid massive legends
+            if len(unique_labels) <= 20:  
                 # legend_fig, legend_ax = plt.subplots(figsize=(2, len(unique_labels)*0.3))
-                legend_fig, legend_ax = plt.subplots(figsize=(len(unique_labels)*1.2, 1.5))  # wider for horizontal
+                legend_fig, legend_ax = plt.subplots(figsize=(len(unique_labels)*1.2, 1.5)) 
                 legend_ax.axis('off')
 
                 label_color_map = {}
@@ -558,10 +550,9 @@ def visualize_latent_space(
         ax.set_xlabel("Component 1")
         ax.set_ylabel("Component 2")
         fig.tight_layout()
-        fig.subplots_adjust(right=0.75)  # Add space for the legend
+        fig.subplots_adjust(right=0.75)  
         plt.savefig(f"../../results/latent_vis_{model_type}_{data_type}_{method_name}_2D.png", dpi=600, bbox_inches='tight')
         plt.close()
-
 
 
     def plot_3d(X_emb, model_type, data_type, method_name):
@@ -572,17 +563,12 @@ def visualize_latent_space(
 
         if label_type == 'regression' and 'Surfactant_Type' in df_total.columns:
             unique_labels = np.unique(surfactant_labels)
-            # cmap = plt.get_cmap("tab20")
-            # cmap = plt.get_cmap("Set2")
             colors = plt.cm.tab20(np.linspace(0, 1, len(unique_labels)))
             color_dict = dict(zip(unique_labels, colors))
             for i, label in enumerate(unique_labels):
                 mask = surfactant_labels == label
                 ax.scatter(X_emb[mask, 0], X_emb[mask, 1], X_emb[mask, 2],
                         color=[color_dict[label]], edgecolor='k', alpha=0.7, label=label)
-
-            # Move legend outside for 3D
-            # ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8, borderaxespad=0.)
             
         else:
             ax.scatter(X_emb[:, 0], X_emb[:, 1], X_emb[:, 2],
@@ -630,8 +616,6 @@ def plot_results_surf_NN(results_surf_NN, save_dir="../../results"):
     for model_name in model_names:
         rmse_list = np.array(results_surf_NN['rmse_results'][model_name])
         r2_list = np.array(results_surf_NN['r2_results'][model_name])
-        # y_pred = np.array(results_surf_NN['y_pred_results'][model_name])
-        # y_true = np.array(results_surf_NN['y_true_results'][model_name])
         y_pred = np.array(results_surf_NN['y_pred_results'][model_name])[-1].flatten()
         y_true = np.array(results_surf_NN['y_true_results'][model_name])[-1].flatten()
         # print(y_true.shape)
@@ -759,14 +743,11 @@ def plot_roc_classification(results_dict, save_dir="../../results", data_type="b
         ax.plot(all_fpr, mean_tpr, color='#1f77b4', lw=2,
                 label=f"Mean ROC (AUC = {mean_auc:.3f} ± {std_auc:.3f})")
 
-        # Std shading
         ax.fill_between(all_fpr, mean_tpr - 2*std_tpr, mean_tpr + 2*std_tpr,
                         color='#aec7e8', alpha=0.3, label='±2 std dev')
 
-        # Diagonal
         ax.plot([0, 1], [0, 1], color='#ff7f0e', lw=1, linestyle='--')
 
-        # Formatting
         ax.set_xlim([-0.01, 1.01])
         ax.set_ylim([0.0, 1.05])
         ax.set_xlabel('False Positive Rate', fontsize=12)

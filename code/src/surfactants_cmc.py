@@ -15,7 +15,7 @@ from sklearn.metrics import r2_score
 
 def get_train_data(df_data):
     train_smiles_list = df_data['SMILES']
-    model_SMI = load_smi_ted(folder='../models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
+    model_SMI = load_smi_ted(folder='../src/models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
 
     return_tensor=True
     with torch.no_grad():
@@ -51,8 +51,7 @@ def train_model(data, property='pCMC'):
     test_x = test_df.iloc[:,0:768]
     test_y = test_df[property]
 
-    # regressor = SVR(kernel="rbf", degree=3, C=5, gamma="scale", epsilon=0.01)
-    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    regressor = RandomForestRegressor(random_state=42)
     model = TransformedTargetRegressor(regressor=regressor,
                                     transformer=MinMaxScaler(feature_range=(-1, 1))
                                     ).fit(train_x, train_y)
@@ -67,16 +66,14 @@ def train_model(data, property='pCMC'):
     # Scatter plot: True vs Predicted
     plt.figure(figsize=(6, 6))
     plt.scatter(test_y, pred_y, color='blue', alpha=0.6, edgecolor='k')
-    plt.plot([test_y.min(), test_y.max()], [test_y.min(), test_y.max()], 'r--', lw=2)  # y = x line
+    plt.plot([test_y.min(), test_y.max()], [test_y.min(), test_y.max()], 'r--', lw=2) 
     plt.xlabel(f'True {property}', fontsize=14)
     plt.ylabel(f'Predicted {property}', fontsize=14)
-    # plt.title('SVR Prediction vs True Values', fontsize=16)
     plt.grid(True)
     plt.tight_layout()
     
     plot_path = os.path.join(save_dir, f'prediction_{property}_{time_str}.png')
-    plt.savefig(plot_path, dpi=300)
-    # fig.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.savefig(plot_path, dpi=600, bbox_inches='tight')
     plt.show()
     plt.close()
 
@@ -87,7 +84,7 @@ def train_model(data, property='pCMC'):
 
     # Color mapping
     surfactant_types = test_df['Surfactant_Type'].unique()
-    colors = plt.cm.tab20(np.linspace(0, 1, len(surfactant_types)))  # or plt.cm.Set1, etc.
+    colors = plt.cm.tab20(np.linspace(0, 1, len(surfactant_types)))  
     color_dict = dict(zip(surfactant_types, colors))
 
     plt.figure(figsize=(7, 7))
@@ -103,12 +100,10 @@ def train_model(data, property='pCMC'):
             alpha=0.7
         )
 
-    # y = x line
     plt.plot([test_y.min(), test_y.max()], [test_y.min(), test_y.max()], 'r--', lw=2)
 
     plt.xlabel(f'True {property}', fontsize=14)
     plt.ylabel(f'Predicted {property}', fontsize=14)
-    # plt.legend(title='Surfactant Type', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.legend(title='Surfactant Type', loc='best', frameon=True)
 
     plt.grid(True)

@@ -4,53 +4,6 @@ import numpy as np
 import torch
 import pandas as pd
 
-# def latent_fn_VICGAE(smis: List[str], model) -> np.ndarray:
-#     """
-#     Given a list of SMILES strings, return their latent embeddings using a model.
-
-#     Parameters:
-#     - smis: List of SMILES strings.
-#     - model: A model with .embed_smiles(smiles: str) -> torch.Tensor
-
-#     Returns:
-#     - embeddings: np.ndarray of shape (n_samples, latent_dim)
-#     """
-#     # filter disconnected mols
-#     def keep_largest_fragment(smi):
-#         return max(smi.split('.'), key=len)
-
-#     # Clean SMILES: strip whitespace, remove empty/null
-#     smis_clean = [
-#         keep_largest_fragment(s.strip())
-#         for s in smis
-#         if isinstance(s, str) and s.strip()
-#     ]
-#     # smis_clean = [keep_largest_fragment(s) for s in smis]  
-#     embeddings = torch.stack([model.embed_smiles(s) for s in smis_clean])
-#     return embeddings.numpy().squeeze(1)  # shape: (n, latent_dim)
-
-# def latent_fn_VICGAE(smis: List[str], model) -> np.ndarray:
-#     def keep_largest_fragment(smi):
-#         return max(smi.split('.'), key=len)
-
-#     smis_clean = [
-#         keep_largest_fragment(s.strip())
-#         for s in smis
-#         if isinstance(s, str) and s.strip()
-#     ]
-
-#     valid_embeddings = []
-#     for s in smis_clean:
-#         try:
-#             emb = model.embed_smiles(s)
-#             valid_embeddings.append(emb)
-#         except KeyError as e:
-#             print(f"⚠️ Skipping SMILES with unsupported token: {s} ({e})")
-
-#     if not valid_embeddings:
-#         raise ValueError("No valid SMILES found after filtering.")
-
-#     return torch.stack(valid_embeddings).numpy().squeeze(1)
 
 def latent_fn_VICGAE(smis: List[str], model) -> np.ndarray:
     def keep_largest_fragment(smi):
@@ -84,8 +37,6 @@ def latent_fn_VICGAE(smis: List[str], model) -> np.ndarray:
     return torch.stack(valid_embeddings).numpy().squeeze(1)
 
 
-
-
 def build_mixture_latent_features_VICGAE(
     df: pd.DataFrame,
     smi_cols: List[str],
@@ -94,8 +45,9 @@ def build_mixture_latent_features_VICGAE(
     latent_fn,  # should be a callable like latent_fn_from_model
     latent_fn_args: dict = None  # any args to pass to latent_fn (e.g., {"model": my_model})
 ) -> Tuple[np.ndarray, np.ndarray]:
+    
     """
-    Given a mixture dataframe with SMILES and concentrations, compute mixture latent representations.
+    Given a mixture dataframe with SMILES and concentrations, compute mixture latent epresentations.
     
     Parameters:
     - df: Input dataframe.
@@ -109,6 +61,7 @@ def build_mixture_latent_features_VICGAE(
     - x_latent: (n_samples, latent_dim) numpy array of mixture features.
     - y: (n_samples,) target values.
     """
+    
     assert len(smi_cols) == len(conc_cols), "Mismatch between SMILES and concentration columns"
 
     # Get all unique SMILES from the mixture
@@ -134,6 +87,6 @@ def build_mixture_latent_features_VICGAE(
     df_embed['mixture_vec'] = df_embed.apply(mix_row, axis=1)
     
     x_latent = np.stack(df_embed['mixture_vec'].values)
-    y = df_embed[target_col].values  # as np.ndarray
+    y = df_embed[target_col].values 
     
     return x_latent, y

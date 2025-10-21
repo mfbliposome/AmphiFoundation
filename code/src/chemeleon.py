@@ -17,11 +17,9 @@ from chemprop.models import MPNN
 from chemprop.nn import RegressionFFN
 
 @torch.no_grad()
-def chemeleon_latent_space(smiles: list[str], model_path: str = "chemeleon_mp.pt") -> torch.Tensor:
-    # Load model checkpoint
+def chemeleon_latent_space(smiles: list[str], model_path: str = "../src/models/chemeleon/chemeleon_mp.pt") -> torch.Tensor:
+    
     checkpoint = torch.load(model_path, weights_only=True)
-
-    # Create components
     featurizer = featurizers.SimpleMoleculeMolGraphFeaturizer()
     agg = nn.MeanAggregation()
     mp = nn.BondMessagePassing(**checkpoint['hyper_parameters'])
@@ -38,8 +36,6 @@ def chemeleon_latent_space(smiles: list[str], model_path: str = "chemeleon_mp.pt
     # Convert SMILES to batch graph
     mol_graphs = [featurizer(MolFromSmiles(s)) for s in smiles]
     bmg = BatchMolGraph(mol_graphs)
-
-    # Move to correct device
     bmg.to(device=model.device)
 
     # Return fingerprint as numpy array
@@ -86,13 +82,11 @@ def train_regressor(df_total):
     plt.plot([test_y.min(), test_y.max()], [test_y.min(), test_y.max()], 'r--', lw=2)  # y = x line
     plt.xlabel(f'True {property}', fontsize=14)
     plt.ylabel(f'Predicted {property}', fontsize=14)
-    # plt.title('SVR Prediction vs True Values', fontsize=16)
     plt.grid(True)
     plt.tight_layout()
 
     plot_path = os.path.join(save_dir, f'prediction_{property}_{time_str}_chemeleon.png')
-    plt.savefig(plot_path, dpi=300)
-    # fig.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.savefig(plot_path, dpi=600, bbox_inches='tight')
     plt.show()
     plt.close()
 
@@ -105,7 +99,7 @@ def build_mixture_latent_features(df: pd.DataFrame, smi_cols: list[str], conc_co
     - df: Input dataframe.
     - smi_cols: List of column names for component SMILES.
     - conc_cols: List of column names for corresponding concentrations.
-    - target_col: Column name for target values (e.g., miscibility).
+    - target_col: Column name for target values.
     - latent_fn: Function that takes a list of SMILES and returns their latent vectors.
     
     Returns:

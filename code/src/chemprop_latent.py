@@ -49,6 +49,14 @@ def build_mixture_latent_features_chemprop(
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Given a mixture dataframe with SMILES and concentrations, compute mixture latent representations.
+    
+    Parameters:
+        - df: Input dataframe.
+        - smi_cols: List of column names for component SMILES.
+        - conc_cols: List of column names for corresponding concentrations.
+        - target_col: Column name for target values.
+        - latent_fn: Function that takes a list of SMILES and returns their latent vectors.
+        - latent_fn_args: args for latent_fn
 
     Returns:
     - x_latent: (n_samples, latent_dim) numpy array of mixture features.

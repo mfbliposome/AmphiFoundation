@@ -19,7 +19,6 @@ import optuna
 
 def run_NN_classification(df, plot=False, seed=None, save_dir=None):
 
-    # =======================
     # Load and Prepare Data
     # =======================
     X = df.iloc[:, 0:-1].values.astype(np.float32)  # features
@@ -34,14 +33,13 @@ def run_NN_classification(df, plot=False, seed=None, save_dir=None):
 
     # convert to torch tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-    y_train_tensor = torch.tensor(y_train, dtype=torch.long)   # <--- long for CE loss
+    y_train_tensor = torch.tensor(y_train, dtype=torch.long)   # long for CE loss
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
     y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
     train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
-    # =======================
     # Model
     # =======================
     class MLP(nn.Module):
@@ -54,13 +52,12 @@ def run_NN_classification(df, plot=False, seed=None, save_dir=None):
                 layers.append(nn.ReLU())
                 layers.append(nn.Dropout(dropout))
                 prev_dim = h
-            layers.append(nn.Linear(prev_dim, num_classes))  # classification output
+            layers.append(nn.Linear(prev_dim, num_classes))  
             self.net = nn.Sequential(*layers)
 
         def forward(self, x):
             return self.net(x)  # logits
     
-    # =======================
     # Training
     # =======================
     def train_model(model, train_loader, val_loader, epochs, lr, device):
@@ -117,7 +114,6 @@ def run_NN_classification(df, plot=False, seed=None, save_dir=None):
 
         return best_acc
 
-    # =======================
     # Optuna objective
     # =======================
     def objective(trial):
@@ -146,7 +142,7 @@ def run_NN_classification(df, plot=False, seed=None, save_dir=None):
         return best_acc  # maximize accuracy
     
     # Run Optuna search
-    study = optuna.create_study(direction="maximize")  # <-- maximize accuracy
+    study = optuna.create_study(direction="maximize")  
     study.optimize(objective, n_trials=20)
 
     print("Best hyperparameters:", study.best_params)
@@ -181,7 +177,7 @@ def run_NN_classification(df, plot=False, seed=None, save_dir=None):
     roc_auc = roc_auc_score(y_true, y_prob)
     print(f"Final Test Accuracy: {test_acc:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}")
 
-    # === Save results if save_dir provided ===
+    # Save results if save_dir provided
     if save_dir is not None:
         os.makedirs(save_dir, exist_ok=True)
 
@@ -240,7 +236,6 @@ def run_NN_classification(df, plot=False, seed=None, save_dir=None):
 # For avoiding over fitting
 def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
 
-    # =======================
     # Load and Prepare Data
     # =======================
     X = df.iloc[:, 0:-1].values.astype(np.float32)  # features
@@ -255,14 +250,13 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
 
     # convert to torch tensors
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-    y_train_tensor = torch.tensor(y_train, dtype=torch.long)   # <--- long for CE loss
+    y_train_tensor = torch.tensor(y_train, dtype=torch.long)   
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
     y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
     train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 
-    # =======================
     # Model
     # =======================
     class MLP(nn.Module):
@@ -276,17 +270,16 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
                 layers.append(nn.ReLU())
                 layers.append(nn.Dropout(dropout))
                 prev_dim = h
-            layers.append(nn.Linear(prev_dim, num_classes))  # classification output
+            layers.append(nn.Linear(prev_dim, num_classes))  
             self.net = nn.Sequential(*layers)
 
         def forward(self, x):
-            return self.net(x)  # logits
+            return self.net(x)  
     
-    # =======================
     # Training
     # =======================
     def train_model(model, train_loader, val_loader, epochs, lr, device):
-        criterion = nn.CrossEntropyLoss() # model outputs a single logit
+        criterion = nn.CrossEntropyLoss() 
         optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4) # L2 regularization
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max',
                                                         factor=0.5, patience=5, verbose=True)
@@ -296,7 +289,7 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
         patience = 20
         patience_counter = 0
         best_model_state = None
-        best_val_loss = float('inf')  # initialize with infinity
+        best_val_loss = float('inf')  
 
 
         for epoch in range(epochs):
@@ -309,7 +302,7 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
                 loss.backward()
                 optimizer.step()
 
-            # --- Validation phase ---
+            # Validation phase 
             model.eval()
             val_loss = 0.0
             with torch.no_grad():
@@ -323,7 +316,7 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
             scheduler.step(-val_loss)
             print(f"Epoch {epoch+1}/{epochs}, Val Loss: {val_loss:.4f}")
 
-            # --- Early stopping on validation loss ---
+            # Early stopping on validation loss
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 patience_counter = 0
@@ -339,7 +332,6 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
 
         return best_acc
 
-    # =======================
     # Optuna objective
     # =======================
     def objective(trial):
@@ -363,7 +355,6 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
                 min_units = 128
                 step = 64
 
-            # Decrease units with each deeper layer
             if i == 0:
                 units = trial.suggest_int(f"n_units_l{i}", max_units // 2, max_units, step=step)
             else:
@@ -388,21 +379,10 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
         model = MLP(input_dim=X_train.shape[1], hidden_dims=hidden_dims, dropout=dropout, num_classes=len(np.unique(y)))
 
         best_acc = train_model(model, train_loader, val_loader, epochs=30, lr=lr, device=device)
-        return best_acc  # maximize accuracy
-    
-            # hidden_dims = []
-        # for i in range(hidden_layers):
-        #     if X_train.shape[1] <= 64:  # very low-dim
-        #         units = trial.suggest_int(f"n_units_l{i}", 16, 128, step=8)
-        #     elif X_train.shape[1] <= 512:  # medium
-        #         units = trial.suggest_int(f"n_units_l{i}", 64, 512, step=32)
-        #     else:  # large (768, 2048, ...)
-        #         units = trial.suggest_int(f"n_units_l{i}", 128, 1024, step=64)
-        #     hidden_dims.append(units)
-        # hidden_dims = [trial.suggest_int(f"n_units_l{i}", 16, 512) for i in range(hidden_layers)]
+        return best_acc  
     
     # Run Optuna search
-    study = optuna.create_study(direction="maximize")  # <-- maximize accuracy
+    study = optuna.create_study(direction="maximize") 
     study.optimize(objective, n_trials=20)
 
     print("Best hyperparameters:", study.best_params)
@@ -437,7 +417,7 @@ def run_NN_classification_update(df, plot=False, seed=None, save_dir=None):
     roc_auc = roc_auc_score(y_true, y_prob)
     print(f"Final Test Accuracy: {test_acc:.4f}, F1: {f1:.4f}, ROC-AUC: {roc_auc:.4f}")
 
-    # === Save results if save_dir provided ===
+    # Save results if save_dir provided 
     if save_dir is not None:
         os.makedirs(save_dir, exist_ok=True)
 

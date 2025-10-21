@@ -22,7 +22,6 @@ def get_data_AL(file_path, info_path):
     df = df_input.copy()
     df.columns = [col.replace('_Concentration (mM)', '') for col in df.columns[:-1]] + ['num_vesicles']
 
-    # Create mapping from df_input_update_ori column names to df_info["Name"]
     column_to_name = {
         'decanoic acid': 'Decanoic acid',
         'decanoate': 'Decanoate',
@@ -36,7 +35,6 @@ def get_data_AL(file_path, info_path):
     # Get SMILES mapping from df_info
     name_to_smiles = dict(zip(df_info['Name'], df_info['SMILES']))
 
-    # Construct new dataframe
     new_data = {}
 
     for col in df.columns[:-1]:  # Skip num_vesicles
@@ -45,10 +43,8 @@ def get_data_AL(file_path, info_path):
         new_data[f"{col}_SMILES"] = [smiles] * len(df)
         new_data[f"{col}_Concentration"] = df[col]
 
-    # Add num_vesicles
     new_data['num_vesicles'] = df['num_vesicles']
 
-    # Create the final dataframe
     df_structured = pd.DataFrame(new_data)
 
     # Rename columns to the desired format
@@ -63,7 +59,6 @@ def get_data_AL(file_path, info_path):
         'vesicles_formation'
     ]
 
-    # Apply the new column names
     df_structured.columns = new_column_names
     print(df_structured.shape)
 
@@ -74,7 +69,7 @@ def get_latent_space_c(df):
 
     train_smiles_list = pd.concat([train_df[f'smi{i}'] for i in range(1, 8)]).unique().tolist()
     
-    model_SMI = load_smi_ted(folder='../models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
+    model_SMI = load_smi_ted(folder='../src/models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
     
     return_tensor=True
     with torch.no_grad():
@@ -96,61 +91,17 @@ def get_latent_space_c(df):
     # Drop rows with NaN and reset index
     df_train_emb = df_train_emb.dropna().reset_index(drop=True)
     
-    # Normalize concentrations
-    # conc_cols = [f'conc{i}' for i in range(1, 3)]
-    # df_train_emb = normalize_concentrations(df_train_emb, conc_cols)
-    
-    # Construct feature vector by scaling the representation by their corresponding composition and add
+    # Construct latent space for mixture
     def build_feature_vector(df, smi_cols, conc_cols):
         components = [df[smi].apply(pd.Series).mul(df[conc], axis=0) for smi, conc in zip(smi_cols, conc_cols)]
         return sum(components)
     
-    # List of columns to process
     smi_cols = [f'smi{i}' for i in range(1, 8)]
     conc_cols = [f'conc{i}' for i in range(1, 8)]
     
     x_smi = build_feature_vector(df_train_emb, smi_cols, conc_cols)
 
     return df_train_emb, x_smi
-
-# def perturb_concentration_one_row(df, row_idx, component_idx, num_points=5):
-#     """
-#     Perturb the concentration of one component in one row across its observed range.
-    
-#     df: original dataframe (df_structured)
-#     row_idx: integer index of row to perturb
-#     component_idx: integer (1-7), corresponds to smi1, smi2, ..., smi7
-#     num_points: number of points in concentration range (default = 5)
-    
-#     Returns: list of new dataframes (each is a copy with perturbed row)
-#     """
-#     dfs_perturbed = []
-#     conc_col = f'conc{component_idx}'
-    
-#     # Get min and max concentration for that component across whole dataframe
-#     min_conc = df[conc_col].min()
-#     max_conc = df[conc_col].max()
-    
-#     # Generate evenly spaced concentration values between min and max
-#     new_conc_series = np.linspace(min_conc, max_conc, num_points)
-    
-#     for conc in new_conc_series:
-#         df_new = df.copy()
-#         df_new.at[row_idx, conc_col] = conc
-#         dfs_perturbed.append(df_new)
-    
-#     return dfs_perturbed, new_conc_series
-
-# dfs_perturbed, conc_values = perturb_concentration_one_row(df_structured, row_idx=0, component_idx=3, num_points=7)
-# x_smi_list = []
-# for i in range(0, len(dfs_perturbed)):
-#     print(i)
-#     df_train_emb, x_smi = get_latent_space_c(dfs_perturbed[i].iloc[0:1])
-#     x_smi_list.append(x_smi)
-
-# df_train_emb_ori, x_smi_ori = get_latent_space_c(df_structured)
-# df_smi = pd.concat([x_smi_ori, df_structured.iloc[:,-1:]], axis=1)
-# df_smi_classify = binarize_last_column(df_smi)
 
 
 def perturb_and_embed(df, row_indices, component_idx, num_points=5, custom_conc_series=None):
@@ -161,13 +112,12 @@ def perturb_and_embed(df, row_indices, component_idx, num_points=5, custom_conc_
     - df: pd.DataFrame — original df_structured
     - row_indices: list of integers — row indices to perturb
     - component_idx: integer (1-7) — which component to perturb (smi1 ~ smi7)
-    - get_latent_space_func: function — user-provided function to compute latent space (like get_latent_space_c)
     - num_points: int — number of points (used only if custom_conc_series not provided)
     - custom_conc_series: array/list (optional) — user-defined concentration values (in log1p space)
     
     Returns:
     - results: dict {row_idx: {'conc_values': [...], 'x_smi_list': [...]}}  
-    (for each perturbed row: list of conc values and corresponding latent spaces)
+    - df_new_all: dataframe for compositoins
     """
     conc_col = f'conc{component_idx}'
     results = {}
@@ -212,7 +162,7 @@ def replace_entire_smi_column(df, smi_column, new_smi):
     - new_smi: str — SMILES string to set for the whole column
 
     Returns:
-    - df_new: pd.DataFrame — modified copy
+    - df_new: pd.DataFrame 
     """
     df_new = df.copy()
 
@@ -224,24 +174,18 @@ def replace_entire_smi_column(df, smi_column, new_smi):
     return df_new
 
 def get_plot(x_smi_list, model_clf, conc_values):
+
     y_pred = np.empty(len(x_smi_list))
 
     for i in range(0, len(x_smi_list)):
         y_pred[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
 
     plt.plot(conc_values, y_pred, marker='o')  
-
-    # Add labels and title
     plt.xlabel('Concentration Values')
     plt.ylabel('Predicted Probability')
     plt.title('Predicted Probability vs. Concentration Values')
-
-    # Add grid for better readability
     plt.grid(True)
-
-    # Show the plot
     plt.show()
-
 
 
 def perturb_predict_plot(df, row_indices, component_idx, model_path, 
@@ -258,7 +202,7 @@ def perturb_predict_plot(df, row_indices, component_idx, model_path,
     - custom_conc_series: list/array (optional) — custom conc series
 
     Returns:
-    - results: dict (same as perturb_and_embed output)
+    - results: dict
     """
     # Load model
     with open(model_path, "rb") as f:
@@ -278,12 +222,10 @@ def perturb_predict_plot(df, row_indices, component_idx, model_path,
         conc_values = results[row_idx]['conc_values']
         x_smi_list = results[row_idx]['x_smi_list']
         
-        # Predict
         y_pred = np.empty(len(x_smi_list))
         for i in range(len(x_smi_list)):
             y_pred[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
         
-        # Plot
         plt.plot(conc_values, y_pred, marker='o')
         plt.xlabel('Concentration Values')
         plt.ylabel('Predicted Probability')
@@ -310,7 +252,7 @@ def perturb_predict_plot_subplots(df, component_idx, model_path,
     - figsize: tuple — size of the entire figure
 
     Returns:
-    - results: dict (same as perturb_and_embed output)
+    - results: dict 
     - selected_indices: list of row indices used
     """
     # Load model
@@ -335,18 +277,16 @@ def perturb_predict_plot_subplots(df, component_idx, model_path,
     nrows = 1
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharex=True, sharey=True)
     if n_samples == 1:
-        axes = [axes]  # Make iterable if single plot
+        axes = [axes]  
 
     for idx, row_idx in enumerate(selected_indices):
         conc_values = results[row_idx]['conc_values']
         x_smi_list = results[row_idx]['x_smi_list']
         
-        # Predict
         y_pred = np.empty(len(x_smi_list))
         for i in range(len(x_smi_list)):
             y_pred[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
         
-        # Plot
         ax = axes[idx]
         ax.plot(conc_values, y_pred, marker='o')
         ax.set_title(f'Sample {row_idx}')
@@ -371,7 +311,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
     Parameters:
     - df: pd.DataFrame — df_structured
     - component_idx: integer (1-7) — component to perturb (smi1 ~ smi7)
-    - model_clf_path: str — path to trained classifier pickle file (foundation model)
+    - model_clf_path: str — path to trained classifier pickle file 
     - model_gp: trained classifier (takes conc1 ~ conc7 as input)
     - num_points: int — number of points in conc series (used if custom_conc_series not given)
     - custom_conc_series: list/array (optional) — custom conc series
@@ -381,12 +321,10 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
     - figsize: tuple — size of the entire figure
 
     Returns:
-    - results: dict (same as perturb_and_embed output)
+    - results: dict
     - selected_indices: list of row indices used
+    - df_new_all: dataframe for compositoins 
     """
-    # Load foundation model (model_clf)
-    # with open(model_clf_path, "rb") as f:
-    #     model_clf = pickle.load(f)
     
     # Default option: systematically select indices: 0, 48, 96, ...
     if selected_indices is None:
@@ -406,7 +344,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
     nrows = 1
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharex=True, sharey=True)
     if n_samples == 1:
-        axes = [axes]  # Make iterable if single plot
+        axes = [axes] 
 
     # Concentration feature columns
     conc_cols = [f'conc{i}' for i in range(1, 8)]
@@ -415,12 +353,12 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
         conc_values = results[row_idx]['conc_values']
         x_smi_list = results[row_idx]['x_smi_list']
         
-        # --- Predict using model_clf ---
+        # Predict using model_clf 
         y_pred_clf = np.empty(len(x_smi_list))
         for i in range(len(x_smi_list)):
             y_pred_clf[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
         
-        # --- Predict using model_gp ---
+        # Predict using model_gp 
         y_pred_gp = []
         for conc in conc_values:
             df_perturbed_row = df.copy()
@@ -430,7 +368,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
             y_pred_gp.append(prob_gp[0])
         y_pred_gp = np.array(y_pred_gp)
         
-        # --- Plot both ---
+        # Plot both
         ax = axes[idx]
         ax.plot(conc_values, y_pred_clf, marker='o', color='blue', label='Model_FM')
         ax.plot(conc_values, y_pred_gp, marker='s', linestyle='--', color='k', label='Model_GP')
@@ -440,7 +378,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
             ax.set_ylabel('Predicted Probabilities')
         ax.set_xlabel('Concentration')
         ax.legend(fontsize=8)
-        # --- Save individual subplot as its own figure ---
+        # Save individual subplot as its own figure 
         fig_indiv, ax_indiv = plt.subplots(figsize=(6, 4))
         ax_indiv.plot(conc_values, y_pred_clf, marker='o', color='blue', label='Model_FM')
         ax_indiv.plot(conc_values, y_pred_gp, marker='s', linestyle='--', color='k', label='Model_GP')
@@ -454,7 +392,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
         plt.close(fig_indiv)
 
     plt.tight_layout()
-    plt.savefig("../results/all_samples_fmvsgp.png", dpi=600)
+    plt.savefig("../../results/all_samples_fmvsgp.png", dpi=600)
     plt.show()
     
     return results, selected_indices, df_new_all
@@ -490,9 +428,8 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
     nrows = 1
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharex=True, sharey=True)
     if n_samples == 1:
-        axes = [axes]  # Make iterable if single plot
+        axes = [axes]  
 
-    # Keep handles + labels for legend
     legend_handles = []
     legend_labels = []
 
@@ -548,5 +485,5 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
         fig.legend(legend_handles, legend_labels, loc='center left', bbox_to_anchor=(1.01, 0.5),
                    fontsize=10, frameon=False)
 
-    fig.savefig("../results/all_samples_conc_sweep.png", dpi=600)
+    fig.savefig("../../results/all_samples_conc_sweep.png", dpi=600)
     plt.show()

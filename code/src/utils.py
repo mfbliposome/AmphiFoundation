@@ -31,7 +31,7 @@ def get_molecule_representation(df_structured=None, train_smiles_list=None):
     Returns:
         pd.DataFrame: DataFrame containing the molecule embeddings.
     """
-    model_SMI = load_smi_ted(folder='../models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
+    model_SMI = load_smi_ted(folder='../src/models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
 
     if train_smiles_list is not None:
         return_tensor=True
@@ -60,7 +60,7 @@ def get_latent_space(df):
 
     train_smiles_list = pd.concat([train_df[f'smi{i}'] for i in range(1, 8)]).unique().tolist()
     
-    model_SMI = load_smi_ted(folder='../models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
+    model_SMI = load_smi_ted(folder='../src/models/smi_ted/smi_ted_light', ckpt_filename='smi-ted-Light_40.pt')
     
     return_tensor=True
     with torch.no_grad():
@@ -82,12 +82,11 @@ def get_latent_space(df):
     # Drop rows with NaN and reset index
     df_train_emb = df_train_emb.dropna().reset_index(drop=True)
     
-    # Construct feature vector by scaling the representation by their corresponding composition and add
+    # Construct latent space for mixture
     def build_feature_vector(df, smi_cols, conc_cols):
         components = [df[smi].apply(pd.Series).mul(df[conc], axis=0) for smi, conc in zip(smi_cols, conc_cols)]
         return sum(components)
     
-    # List of columns to process
     smi_cols = [f'smi{i}' for i in range(1, 8)]
     conc_cols = [f'conc{i}' for i in range(1, 8)]
     
@@ -164,22 +163,18 @@ def run_classifier_update(xtrain, ytrain, xtest, ytest, classifier_alter=False):
     return clf, y_pred, roc_auc, fpr, tpr, threshold
 
 def plot_PCA(df_total):
-    # 1. Prepare X and y
     X = df_total.iloc[:, :768].values
     y = df_total['miscibility'].values
 
-    # 2. PCA
-    pca = PCA(n_components=10)  # more components to see variance
+    pca = PCA(n_components=10)  
     X_pca = pca.fit_transform(X)
 
     explained_variance = pca.explained_variance_ratio_
 
-    # 3. Color mapping
     miscibility_types = df_total['miscibility'].unique()
     colors = plt.cm.tab20(np.linspace(0, 1, len(miscibility_types)))
     color_dict = dict(zip(miscibility_types, colors))
 
-    # 4. 2D Scatter Plot
     plt.figure(figsize=(8,6))
     for surfactant in miscibility_types:
         idx = (y == surfactant)
@@ -194,7 +189,7 @@ def plot_PCA(df_total):
     plt.tight_layout()
     plt.show()
 
-    # 5. 3D Interactive Scatter Plot
+    # 5. 3D Interactive Scatter Plot with plotly
     traces = []
     for surfactant in miscibility_types:
         idx = (y == surfactant)
@@ -237,7 +232,6 @@ def plot_PCA(df_total):
 
     return
 
-
 def binarize_last_column(df):
     """
     Converts the last column of a DataFrame to binary values:
@@ -249,13 +243,13 @@ def binarize_last_column(df):
     df_bin[last_col] = (df_bin[last_col] > 0).astype(int)
     return df_bin
 
-def get_classifier(xtrain, ytrain):
+# def get_classifier(xtrain, ytrain):
 
-    # Train XGBoost classifier
-    xgb_clf = XGBClassifier(n_estimators=5000, learning_rate=0.01, max_depth=10, use_label_encoder=False, eval_metric='logloss')
-    xgb_clf.fit(xtrain, ytrain)
+#     # Train XGBoost classifier
+#     xgb_clf = XGBClassifier(n_estimators=5000, learning_rate=0.01, max_depth=10, use_label_encoder=False, eval_metric='logloss')
+#     xgb_clf.fit(xtrain, ytrain)
     
-    return xgb_clf
+#     return xgb_clf
 
 def reverse_log1p(transformed_value):
   
@@ -293,15 +287,12 @@ def replace_entire_smi_column(df, smi_column, new_smi):
 
     return df_new
 
-
-
 def repeated_roc_analysis(X, y, n_repeats=10, test_size=0.2, random_state=42):
     """
-    Repeated train/test splits, plots mean ROC curve with shaded variance.
+    Repeated runs, plots mean ROC curve with shaded variance.
 
     Parameters:
     - X, y: dataset
-    - model_func: function that returns trained classifier (e.g., get_classifier)
     - n_repeats: int — how many repeats (default=10)
     - test_size: float — test size fraction (default=0.2)
     - random_state: int — seed (for reproducibility)
@@ -310,7 +301,6 @@ def repeated_roc_analysis(X, y, n_repeats=10, test_size=0.2, random_state=42):
     - None (plots directly)
     """
 
-    # Storage
     tprs = []
     aucs = []
     mean_fpr = np.linspace(0, 1, 100)
@@ -318,13 +308,12 @@ def repeated_roc_analysis(X, y, n_repeats=10, test_size=0.2, random_state=42):
     rng = np.random.default_rng(seed=random_state)
 
     for i in range(n_repeats):
-        # Different random splits each repeat
         rs = rng.integers(0, 10000)
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, random_state=rs, stratify=y)
 
         def get_classifier(X_train, y_train):
-            rf_clf = RandomForestClassifier(n_estimators=100, random_state=42)
+            rf_clf = RandomForestClassifier(random_state=42)
             rf_clf.fit(X_train, y_train)
             return rf_clf
 
@@ -370,14 +359,14 @@ def repeated_roc_analysis(X, y, n_repeats=10, test_size=0.2, random_state=42):
 
 def evaluate_model_stability(df, n_repeats=10, random_state=42, property='vesicles_formation'):
     """
-    Repeated train/test ROC analysis to assess overfitting and stability.
+    Repeated ROC analysis to assess overfitting and stability.
     Plots all ROC curves + mean + shaded region.
     
     Parameters:
     - df: pd.DataFrame — your input dataset (df1)
-    - get_latent_space_func: function — your get_latent_space(df)
     - n_repeats: int — number of runs (default=10)
     - random_state: int — reproducibility
+    - property: output type
 
     Returns:
     - None (plots directly)
@@ -445,12 +434,11 @@ def evaluate_model_stability(df, n_repeats=10, random_state=42, property='vesicl
 
 def evaluate_model_stability_baseline(df, n_repeats=10, random_state=42):
     """
-    Repeated train/test ROC analysis to assess overfitting and stability.
+    Repeated ROC analysis to assess overfitting and stability.
     Plots all ROC curves + mean + shaded region.
     
     Parameters:
     - df: pd.DataFrame — your input dataset (df1)
-    - get_latent_space_func: function — your get_latent_space(df)
     - n_repeats: int — number of runs (default=10)
     - random_state: int — reproducibility
 
@@ -462,7 +450,6 @@ def evaluate_model_stability_baseline(df, n_repeats=10, random_state=42):
 
     rng = np.random.default_rng(seed=random_state)
 
-    # Store interpolated TPRs + AUCs
     tprs = []
     aucs = []
     mean_fpr = np.linspace(0, 1, 100)
@@ -470,7 +457,6 @@ def evaluate_model_stability_baseline(df, n_repeats=10, random_state=42):
     plt.figure(figsize=(8,6))
 
     for i in range(n_repeats):
-        # Train/test split (different random_state each time)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
                                                              random_state=rng.integers(0, 10000),
                                                              stratify=y)
@@ -547,6 +533,7 @@ def pca_model_contour_plot(X, y_pred, model, n_components=2, grid_step=0.1,
     - levels: int — contour levels (default=20)
     - figsize: tuple — figure size (default=(8,6))
     - plot_title: str — title of the plot
+    - random_state: int - random seed
 
     Returns:
     - None (plots directly)
@@ -690,12 +677,12 @@ def run_diverse_selection_workflow(X, y_pred, model, df_reference, n_select=10, 
 
     Parameters:
     - X: feature array
-    - y_pred: predicted labels or placeholder (for compatibility)
+    - y_pred: predicted labels or placeholder
     - model: classifier with `predict_proba`
     - df_reference: original dataframe to extract selected samples
     - n_select: number of high/low diverse samples to select
     - title: plot title
-    - figsize: size of matplotlib figure
+    - figsize: size of figure
     - cmap: colormap for probabilities
 
     Returns:
