@@ -63,7 +63,7 @@ This folder contains the results produced by working notebooks.
 
 
 ## Software requirements and installation
-- Base environment
+1. Base environment
    
    Used for data processing, training, and evaluation of machine learning models. The detailed environment dependencies can be seen in here: `envs/base_environment.yml`.
    The installation can be done with:
@@ -71,7 +71,7 @@ This folder contains the results produced by working notebooks.
    conda env create -f envs/base_environment.yml
    conda activate base_env
    ```
-- Foundation model environments
+2. Foundation model environments
    
    The repository integrates several Foundation Models (FMs) developed by other research groups.
    Each model requires its own environment, following the original installation guide from their official repositories.
