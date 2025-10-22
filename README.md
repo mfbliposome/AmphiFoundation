@@ -34,8 +34,8 @@ In this folder, it contains the results produced by working notebooks.
 |--------|--------------|---------|---------------|
 | **VICGAE** |  Gated recurrent autoencoder. Used to generate molecular latent space. | [VICGAE GitHub]( https://github.com/HumbleSituation164/orion-kl-ml-main) | See the setup instructions in the original repo: [VICGAE documentation](https://github.com/HumbleSituation164/orion-kl-ml-main/blob/main/README.md). |
 | **Chemprop** | Directed message-passing neural networks (D-MPNNs). Used to generate molecular latent space. | [Chemprop GitHub](https://github.com/chemprop/chemprop) | Follow installation guide in the [Chemprop documentation](https://chemprop.readthedocs.io/en/main/installation.html). |
-| **CheMeleon** | Based on the Chemprop architecture. Used to generate molecular latent space. | [GitHub Link](https://github.com/JacksonBurns/chemeleon) | See the setup instructions in the original repo: [CheMeleon documentation](https://github.com/JacksonBurns/chemeleon/blob/main/README.md).|
-| **SMI-TED** |  Transformer-based foundation model. Used to generate molecular latent space | [GitHub Link](https://github.com/IBM/materials) | See the setup instructions in the original repo: [SMI-TED documentation](https://github.com/IBM/materials/blob/main/README.md). |
+| **CheMeleon** | Based on the Chemprop architecture. Used to generate molecular latent space. | [CheMeleon Github](https://github.com/JacksonBurns/chemeleon) | See the setup instructions in the original repo: [CheMeleon documentation](https://github.com/JacksonBurns/chemeleon/blob/main/README.md).|
+| **SMI-TED** |  Transformer-based foundation model. Used to generate molecular latent space | [SMI-TED](https://github.com/IBM/materials) | See the setup instructions in the original repo: [SMI-TED documentation](https://github.com/IBM/materials/blob/main/README.md). |
 
 
    
