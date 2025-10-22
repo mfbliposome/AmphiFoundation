@@ -29,6 +29,7 @@ In this folder, it contains the results produced by working notebooks.
    The repository integrates several Foundation Models (FMs) developed by other research groups.
    Each model requires its own environment, following the original installation guide from their official repositories.
    Environment dependencies are listed in the `envs/` folder for reference.
+   
    | Model          | Description                                                                                    | Source                                                  | Installation                                                                                                  |
 | -------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Chemprop**   | Graph neural network for molecular property prediction. Used to generate molecular embeddings. | [Chemprop GitHub](https://github.com/chemprop/chemprop) | Follow installation guide in the [Chemprop documentation](https://github.com/chemprop/chemprop#installation). |
