@@ -6,8 +6,24 @@ In this repo, it has 3 folders: `code/`, `data/`, and `results/`.
 
 ### Folder `code/`
 - In this folder, it has 2 subfolders: `src/`, `notebooks/`, which store the source code for the foundation model related analysis, microscopy analysis, and working notebooks.
-- In the `notebooks/` folder, working notebooks are named based on the functionality and correspond to different section in the paper.
-  such as Latent space generation, concentration effect, experimental results...etc.
+- The `notebooks/` folder contains working notebooks throughout the study. The notebook name reflects its main purpose and corresponds to the analysis and figures presented in the paper.
+
+  To help navigation, notebooks are organized into 4 logical groups:
+  1. Latent space establishment (Latent_space_*.ipynb)
+     These notebooks generate molecular representations (embeddings) using different foundation models or fingerprints. For example:
+     - Latent_space_smi-ted_*.ipynb — latent space generation using the SMI-TED foundation model.
+     - Latent_space_cheprop_*.ipynb — latent space generation using the Chemprop foundation model.
+
+  2. Model training and comparison (Model_comparison*.ipynb)
+     Evaluate and compare the performance of different models trained with various representations.
+
+  3. Experimental planning and fine-tuning (FM_ExperimentalPlan*.ipynb, FM_finetune*.ipynb)
+     Notebooks document the experimental design, microscopy analysis, fine-tuning, etc.
+
+  4. Concentration effect analysis (FM_Concentration_affect*.ipynb)
+     These notebooks analyze how varying amphiphile concentrations affect model predictions and vesicle formation.
+     
+
 
 ### Folder `data/`
 In this folder, it stores the data files for the foundation model related analysis and microscopy images:
@@ -39,13 +55,15 @@ In this folder, it contains the results produced by working notebooks.
 
 ## Software requirements and installation
 1. Base environment
+   
    Used for data processing, training, and evaluation of machine learning models. The detailed environment dependencies can be seen in here: `envs/base_environment.yml`.
    The installation can be done with:
    ```
    conda env create -f envs/base_environment.yml
    conda activate base_env
    ```
-2. Foundation model environments
+3. Foundation model environments
+   
    The repository integrates several Foundation Models (FMs) developed by other research groups.
    Each model requires its own environment, following the original installation guide from their official repositories.
    Environment dependencies are listed in the `envs/` folder for reference.
