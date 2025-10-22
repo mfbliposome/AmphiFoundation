@@ -13,17 +13,17 @@ In this repo, it has 3 folders: `code/`, `data/`, and `results/`.
 In this folder, it stores the data files for the foundation model related analysis and microscopy images:
 - `Intermediate/`
 
-Contains intermediate data files and model files
+  Contains intermediate data files and model files
 
 - `Literature/`
 
-Contains the data from literature and it has 3 subfolders: `surfactant_paper`, `binary_paper`, `amphiphile_paper`
+  Contains the data from literature and it has 3 subfolders: `surfactant_paper`, `binary_paper`, `amphiphile_paper`
 
 - `Tempplates_microscopy/`
 
-Contains the templates that are used for microscopy image analysis. 
+  Contains the templates that are used for microscopy image analysis. 
 
-See details in here: [[Data description](https://github.com/hliu56/AmphiFoundation/blob/main/data/README.md)]
+  See details in here: [[Data description](https://github.com/hliu56/AmphiFoundation/blob/main/data/README.md)]
 
 -  Original microscopy image data and vesicles detection results can be seen in [[Zenodo link](https://doi.org/10.5281/zenodo.17401465)]
 
