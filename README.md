@@ -6,6 +6,10 @@ In this repo, it has 3 folders: `code/`, `data/`, and `results/`.
 
 ### Folder `code/`
 - In this folder, it has 2 subfolders: `src/`, `notebooks/`, which store the source code for the foundation model related analysis, microscopy analysis, and working notebooks.
+- The `src/` folder contains the source code throughout the study. Each module corresponds to a specific functionality used in latent space establishment, model comparison, analysis, etc.
+  1. The subfolder `models/` contains the pretrained foundation models.
+  2. The subfolder `microscopy/` contains the source code for microscopy analysis.
+     
 - The `notebooks/` folder contains working notebooks throughout the study. The notebook name reflects its main purpose and corresponds to the analysis and figures presented in the paper.
 
   To help navigation, notebooks are organized into 4 logical groups:
