@@ -140,7 +140,7 @@ def perturb_and_embed(df, row_indices, component_idx, num_points=5, custom_conc_
             df_new.at[row_idx, conc_col] = conc
             df_list.append(df_new.copy())
             
-            # Compute latent space (assumes get_latent_space_func(df_slice) returns (df_emb, x_smi))
+            # Compute latent space 
             df_train_emb, x_smi = get_latent_space_c(df_new.iloc[[row_idx]])
             x_smi_list.append(x_smi)
         

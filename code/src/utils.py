@@ -189,7 +189,7 @@ def plot_PCA(df_total):
     plt.tight_layout()
     plt.show()
 
-    # 5. 3D Interactive Scatter Plot with plotly
+    # 3D Interactive Scatter Plot with plotly
     traces = []
     for surfactant in miscibility_types:
         idx = (y == surfactant)
@@ -514,7 +514,7 @@ def normalize_concentrations(df, conc_cols):
     return df
 
 
-# ===============================
+# ===========================================
 # This part is for generate experimental plan
 
 def pca_model_contour_plot(X, y_pred, model, n_components=2, grid_step=0.1,

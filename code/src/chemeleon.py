@@ -2,7 +2,6 @@ from datetime import datetime
 import os
 from matplotlib import pyplot as plt
 import numpy as np
-# from sklearn.base import r2_score
 import pandas as pd
 from sklearn.compose import TransformedTargetRegressor
 from sklearn.ensemble import RandomForestRegressor
