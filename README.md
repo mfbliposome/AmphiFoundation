@@ -2,7 +2,29 @@
 Foundation model for MFB liposome
 
 ## Folder structure
-In this repo, it has 3 folders: `code/`, `data/`, and `results/`.
+In this repo, it has 4 folders: `data/`, `code/`,  `envs/` and `results/`.
+
+### Folder `data/`
+In this folder, it stores the data files for the foundation model related analysis and microscopy images:
+- `Intermediate/`
+
+  Contains intermediate data files and model files
+
+- `Literature/`
+
+  Contains the data from literature and it has 3 subfolders: `surfactant_paper`, `binary_paper`, `amphiphile_paper`
+
+- `Tempplates_microscopy/`
+
+  Contains the templates that are used for microscopy image analysis. 
+
+  See details in here: [[Data description](https://github.com/hliu56/AmphiFoundation/blob/main/data/README.md)]
+
+-  Original microscopy image data and vesicles detection results can be seen in [[Zenodo link](https://doi.org/10.5281/zenodo.17401465)]
+
+Note, in this repository, we have used the terms 'similar' and 'dissimilar' as a shorthand for hydrocarbon and fluorocarbon amphiphiles. However, in the manuscript, we have opted to use the formal name, hydrocarbon and fluorocarbon amphiphiles, to elucidate their chemical structures.
+
+
 
 ### Folder `code/`
 - In this folder, it has 2 subfolders: `src/`, `notebooks/`, which store the source code for the foundation model related analysis, microscopy analysis, and working notebooks.
@@ -27,38 +49,21 @@ In this repo, it has 3 folders: `code/`, `data/`, and `results/`.
   4. Concentration effect analysis (FM_Concentration_affect*.ipynb)
      These notebooks analyze how varying amphiphile concentrations affect model predictions and vesicle formation.
      
+### Folder `envs/`
+This folder contains the Python environment specifications required to reproduce the computational experiments.
+It includes the base environment used for general analysis and additional environments for different foundation models.
 
-
-### Folder `data/`
-In this folder, it stores the data files for the foundation model related analysis and microscopy images:
-- `Intermediate/`
-
-  Contains intermediate data files and model files
-
-- `Literature/`
-
-  Contains the data from literature and it has 3 subfolders: `surfactant_paper`, `binary_paper`, `amphiphile_paper`
-
-- `Tempplates_microscopy/`
-
-  Contains the templates that are used for microscopy image analysis. 
-
-  See details in here: [[Data description](https://github.com/hliu56/AmphiFoundation/blob/main/data/README.md)]
-
--  Original microscopy image data and vesicles detection results can be seen in [[Zenodo link](https://doi.org/10.5281/zenodo.17401465)]
-
-Note, in this repository, we have used the terms 'similar' and 'dissimilar' as a shorthand for hydrocarbon and fluorocarbon amphiphiles. However, in the manuscript, we have opted to use the formal name, hydrocarbon and fluorocarbon amphiphiles, to elucidate their chemical structures.
 
 
 
 ### Folder `results/`
-In this folder, it contains the results produced by working notebooks.
+This folder contains the results produced by working notebooks.
 
-### Folder `envs/`
+
 
 
 ## Software requirements and installation
-1. Base environment
+- Base environment
    
    Used for data processing, training, and evaluation of machine learning models. The detailed environment dependencies can be seen in here: `envs/base_environment.yml`.
    The installation can be done with:
@@ -66,7 +71,7 @@ In this folder, it contains the results produced by working notebooks.
    conda env create -f envs/base_environment.yml
    conda activate base_env
    ```
-3. Foundation model environments
+- Foundation model environments
    
    The repository integrates several Foundation Models (FMs) developed by other research groups.
    Each model requires its own environment, following the original installation guide from their official repositories.
