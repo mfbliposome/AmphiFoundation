@@ -1,10 +1,13 @@
 This folder contains datasets used and generated in the project
 
 1. `Intermediate/`
+
 Contains intermediate data files and model files
 
 2. `Literature/`
+
 Contains the data from literature and it have 3 subfolders: `surfactant_paper`, `binary_paper`, `amphiphile_paper`
+
 The data in `surfactant_paper/` comes from paper: H¨odl, S. L.; Hermans, L.; Dankloff, P. F. J.; Piruska, A.; Huck, W. T. S.; Robin-
 son, W. E. SurfPro – a curated database and predictive model of experimental proper-
 ties of surfactants. Digital Discovery 2025, 4, 1176–1187.
@@ -16,10 +19,11 @@ Aqueous Solutions via Graph-Regularized Logistic Matrix Factorization. The Journ
 of Physical Chemistry B 2023, 127, 7964–7973, PMID: 37682958. 
 File `Chemical_name_smiles_update.csv` was manual curated.
 
-Then data in `amphiphile_paper/` comes from paper: Ekosso, C.; Liu, H.; Glagovich, A.; Nguyen, D.; Maurer, S.; Schrier, J. Accelerating the
+The data in `amphiphile_paper/` comes from paper: Ekosso, C.; Liu, H.; Glagovich, A.; Nguyen, D.; Maurer, S.; Schrier, J. Accelerating the
 Discovery of Abiotic Vesicles with AI-Guided Automated Experimentation. Langmuir
 2025, 41, 858–867, PMID: 39810357.
 File `Info_new_molecules.csv` and `Info.csv` were manual curated.
 
 3. `Tempplates_microscopy/`
+
 Contains the templates that used for microscopy image analysis. 
