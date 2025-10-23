@@ -32,9 +32,7 @@ def run_classifier_model(xtrain, ytrain, xtest, ytest, random_seed, classifier_a
         y_pred = clf.predict_proba(xtest)[:,1]
 
     elif classifier_alter == True:
-        clf = RandomForestClassifier(
-            n_estimators=500,  
-            max_depth=10,      
+        clf = RandomForestClassifier(    
             random_state=random_seed,
             
         )
