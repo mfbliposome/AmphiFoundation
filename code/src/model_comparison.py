@@ -523,7 +523,7 @@ def visualize_latent_space(
                     if lab not in label_color_map:
                         label_color_map[lab] = col
 
-                label_map = {0: "No Vesicle Formation", 1: "Vesicle Formation"}
+                label_map = {0: "No Liposome Formation", 1: "Liposome Formation"}
                 handles = []
                 for label in unique_labels:
                     color = label_color_map.get(label)
