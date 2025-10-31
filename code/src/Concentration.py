@@ -301,17 +301,17 @@ def perturb_predict_plot_subplots(df, component_idx, model_path,
     return results, selected_indices
 
 
-
 def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp, 
                                           num_points=5, custom_conc_series=None, 
-                                          n_samples=7, selected_indices=None, step=48, figsize=(18, 8)):
+                                          n_samples=7, selected_indices=None, step=48, figsize=(18, 8),
+                                          save_dir="../../results"):
     """
     Systematically select rows, perturb concentration, predict with two models, and plot comparison subplots.
 
     Parameters:
     - df: pd.DataFrame — df_structured
     - component_idx: integer (1-7) — component to perturb (smi1 ~ smi7)
-    - model_clf_path: str — path to trained classifier pickle file 
+    - model_clf_path: str — path to trained classifier pickle file (foundation model)
     - model_gp: trained classifier (takes conc1 ~ conc7 as input)
     - num_points: int — number of points in conc series (used if custom_conc_series not given)
     - custom_conc_series: list/array (optional) — custom conc series
@@ -321,12 +321,10 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
     - figsize: tuple — size of the entire figure
 
     Returns:
-    - results: dict
+    - results: dict (same as perturb_and_embed output)
     - selected_indices: list of row indices used
-    - df_new_all: dataframe for compositoins 
     """
     
-    # Default option: systematically select indices: 0, 48, 96, ...
     if selected_indices is None:
         selected_indices = [i * step for i in range(n_samples)]
     
@@ -344,7 +342,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
     nrows = 1
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharex=True, sharey=True)
     if n_samples == 1:
-        axes = [axes] 
+        axes = [axes]  # Make iterable if single plot
 
     # Concentration feature columns
     conc_cols = [f'conc{i}' for i in range(1, 8)]
@@ -353,12 +351,12 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
         conc_values = results[row_idx]['conc_values']
         x_smi_list = results[row_idx]['x_smi_list']
         
-        # Predict using model_clf 
+        # Predict using model_clf
         y_pred_clf = np.empty(len(x_smi_list))
         for i in range(len(x_smi_list)):
             y_pred_clf[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
         
-        # Predict using model_gp 
+        # Predict using model_gp
         y_pred_gp = []
         for conc in conc_values:
             df_perturbed_row = df.copy()
@@ -385,20 +383,22 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
         # ax_indiv.set_title(f'Sample {row_idx}')
         ax_indiv.set_ylabel('Predicted Probabilities')
         ax_indiv.set_xlabel('Concentration')
+        ax_indiv.set_ylim(0, 1) 
         # ax_indiv.grid(True)
         # ax_indiv.legend(fontsize=8)
         plt.tight_layout()
-        plt.savefig(f"../results/sample_{row_idx}_fmvsgp.png", dpi=600)
+        plt.savefig(f"{save_dir}/sample_{row_idx}_fmvsgp.png", dpi=600)
         plt.close(fig_indiv)
 
     plt.tight_layout()
-    plt.savefig("../../results/all_samples_fmvsgp.png", dpi=600)
+    plt.savefig(f"{save_dir}/all_samples_fmvsgp.png", dpi=600)
     plt.show()
     
     return results, selected_indices, df_new_all
 
 def compare_results_multiple_runs(results_list, model_clf, selected_indices, custom_conc_series,
-                                   labels=None, colors=None, figsize=(21, 4), legend_loc='bottom'):
+                                   labels=None, colors=None, figsize=(21, 4), legend_loc='bottom',
+                                   save_dir="../../results"):
     """
     Compare predicted probabilities from multiple results dicts on same samples with shared legend outside.
 
@@ -428,8 +428,9 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
     nrows = 1
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharex=True, sharey=True)
     if n_samples == 1:
-        axes = [axes]  
+        axes = [axes] 
 
+    # Keep handles + labels for legend
     legend_handles = []
     legend_labels = []
 
@@ -440,14 +441,12 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
             conc_values = results[row_idx]['conc_values']
             x_smi_list = results[row_idx]['x_smi_list']
             
-            # Predict prob for all x_smi
             y_pred = np.empty(len(x_smi_list))
             for i in range(len(x_smi_list)):
                 y_pred[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
 
             line, = ax.plot(conc_values, y_pred, marker='o', color=colors[run_idx], label=labels[run_idx])
             
-            # Store handle/label only once (from first subplot)
             if idx == 0:
                 legend_handles.append(line)
                 legend_labels.append(labels[run_idx])
@@ -456,7 +455,7 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
         ax.grid(True)
         if idx == 0:
             ax.set_ylabel('Predicted Probabilities')
-        ax.set_xlabel('Concentrations')
+        ax.set_xlabel('Concentration')
 
         # Save individual figure
         fig_indiv, ax_indiv = plt.subplots(figsize=(6, 4))
@@ -469,11 +468,12 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
             ax_indiv.plot(conc_values, y_pred, marker='o', color=colors[run_idx], label=labels[run_idx])
         # ax_indiv.set_title(f'Sample {row_idx}')
         ax_indiv.set_ylabel("Predicted Probabilities")
-        ax_indiv.set_xlabel("Concentrations")
+        ax_indiv.set_xlabel("Concentration")
+        ax_indiv.set_ylim(0, 1) 
         # ax_indiv.legend(fontsize=8)
         # ax_indiv.grid(True)
         fig_indiv.tight_layout()
-        fig_indiv.savefig(f"../results/sample_{row_idx}_individual_concsweep.png", dpi=600, bbox_inches='tight')
+        fig_indiv.savefig(f"{save_dir}/sample_{row_idx}_individual_concsweep.png", dpi=600, bbox_inches='tight')
         plt.close(fig_indiv)
 
     # Adjust layout and add shared legend outside
@@ -485,5 +485,5 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
         fig.legend(legend_handles, legend_labels, loc='center left', bbox_to_anchor=(1.01, 0.5),
                    fontsize=10, frameon=False)
 
-    fig.savefig("../../results/all_samples_conc_sweep.png", dpi=600)
+    fig.savefig(f"{save_dir}/all_samples_conc_sweep.png", dpi=600)
     plt.show()
