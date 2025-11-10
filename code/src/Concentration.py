@@ -1,4 +1,5 @@
 
+import os
 import pickle
 from matplotlib import pyplot as plt
 import numpy as np
@@ -324,7 +325,13 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
     - results: dict (same as perturb_and_embed output)
     - selected_indices: list of row indices used
     """
+    # Load foundation model (model_clf)
+    # with open(model_clf_path, "rb") as f:
+    #     model_clf = pickle.load(f)
+
+    os.makedirs(save_dir, exist_ok=True)
     
+    # Default option: systematically select indices: 0, 48, 96, ...
     if selected_indices is None:
         selected_indices = [i * step for i in range(n_samples)]
     
@@ -356,7 +363,7 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
         for i in range(len(x_smi_list)):
             y_pred_clf[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
         
-        # Predict using model_gp
+        # Predict using model_gp 
         y_pred_gp = []
         for conc in conc_values:
             df_perturbed_row = df.copy()
@@ -380,12 +387,22 @@ def perturb_predict_compare_plot_subplots(df, component_idx, model_clf, model_gp
         fig_indiv, ax_indiv = plt.subplots(figsize=(6, 4))
         ax_indiv.plot(conc_values, y_pred_clf, marker='o', color='blue', label='Model_FM')
         ax_indiv.plot(conc_values, y_pred_gp, marker='s', linestyle='--', color='k', label='Model_GP')
-        # ax_indiv.set_title(f'Sample {row_idx}')
         ax_indiv.set_ylabel('Predicted Probabilities')
-        ax_indiv.set_xlabel('Concentration')
-        ax_indiv.set_ylim(0, 1) 
-        # ax_indiv.grid(True)
-        # ax_indiv.legend(fontsize=8)
+        ax_indiv.set_xlabel(r'$\ln(1 + c_i/c_0)$')
+        ax_indiv.set_ylim(0, 1)
+
+        # secondary x-axis for original concentrations 
+        def inv_log1p(x):
+            """Inverse transform of ln(1 + c_i/c_0): returns c_i in mM"""
+            return np.expm1(x)  # because exp(x) - 1 = c_i/c_0
+
+        def fwd_log1p(x):
+            """Forward transform from c_i (mM) to ln(1 + c_i/c_0)"""
+            return np.log1p(x)
+
+        secax = ax_indiv.secondary_xaxis('top', functions=(inv_log1p, fwd_log1p))
+        secax.set_xlabel('Concentration (mM)')
+
         plt.tight_layout()
         plt.savefig(f"{save_dir}/sample_{row_idx}_fmvsgp.png", dpi=600)
         plt.close(fig_indiv)
@@ -415,6 +432,8 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
     Returns:
     - None (plots directly)
     """
+    os.makedirs(save_dir, exist_ok=True)
+
     n_runs = len(results_list)
     n_samples = len(selected_indices)
 
@@ -428,7 +447,7 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
     nrows = 1
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, sharex=True, sharey=True)
     if n_samples == 1:
-        axes = [axes] 
+        axes = [axes]  # Make iterable if single plot
 
     # Keep handles + labels for legend
     legend_handles = []
@@ -441,12 +460,14 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
             conc_values = results[row_idx]['conc_values']
             x_smi_list = results[row_idx]['x_smi_list']
             
+            # Predict prob for all x_smi
             y_pred = np.empty(len(x_smi_list))
             for i in range(len(x_smi_list)):
                 y_pred[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
 
             line, = ax.plot(conc_values, y_pred, marker='o', color=colors[run_idx], label=labels[run_idx])
             
+            # Store handle/label only once (from first subplot)
             if idx == 0:
                 legend_handles.append(line)
                 legend_labels.append(labels[run_idx])
@@ -466,12 +487,23 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
             for i in range(len(x_smi_list)):
                 y_pred[i] = model_clf.predict_proba(x_smi_list[i])[:, 1]
             ax_indiv.plot(conc_values, y_pred, marker='o', color=colors[run_idx], label=labels[run_idx])
-        # ax_indiv.set_title(f'Sample {row_idx}')
-        ax_indiv.set_ylabel("Predicted Probabilities")
-        ax_indiv.set_xlabel("Concentration")
-        ax_indiv.set_ylim(0, 1) 
-        # ax_indiv.legend(fontsize=8)
-        # ax_indiv.grid(True)
+
+        ax_indiv.set_ylabel('Predicted Probabilities')
+        ax_indiv.set_xlabel(r'$\ln(1 + c_i/c_0)$')
+        ax_indiv.set_ylim(0, 1)
+
+        # secondary x-axis for original concentrations 
+        def inv_log1p(x):
+            """Inverse transform of ln(1 + c_i/c_0): returns c_i in mM"""
+            return np.expm1(x)  
+
+        def fwd_log1p(x):
+            """Forward transform from c_i (mM) to ln(1 + c_i/c_0)"""
+            return np.log1p(x)
+
+        secax = ax_indiv.secondary_xaxis('top', functions=(inv_log1p, fwd_log1p))
+        secax.set_xlabel('Concentration (mM)',)
+
         fig_indiv.tight_layout()
         fig_indiv.savefig(f"{save_dir}/sample_{row_idx}_individual_concsweep.png", dpi=600, bbox_inches='tight')
         plt.close(fig_indiv)
@@ -487,3 +519,31 @@ def compare_results_multiple_runs(results_list, model_clf, selected_indices, cus
 
     fig.savefig(f"{save_dir}/all_samples_conc_sweep.png", dpi=600)
     plt.show()
+
+def extract_sample(df_all, sample_idx, base_idx):
+    """
+    Extracts and formats a specific sample (base_idx) across all perturbations 
+    for a given dataset (df_all).
+
+    Each extracted row is converted into a DataFrame and transposed.
+
+    Parameters
+    ----------
+    df_all : dict
+        Dictionary-like object where keys are indices (e.g., 0, 1, 2, ...) 
+        and values are lists of DataFrames.
+    sample_idx : int
+        The outer key (e.g., 240).
+    base_idx : int
+        The row index to extract from each DataFrame.
+
+    Returns
+    -------
+    samples : dict
+        Dictionary of DataFrames (transposed), e.g. {'sample_240_ori_0': df, ...}
+    """
+    samples = {}
+    for i in range(len(df_all[sample_idx])):
+        row = df_all[sample_idx][i].loc[base_idx]
+        samples[f"sample{sample_idx}_{i}"] = pd.DataFrame(row).T
+    return samples
