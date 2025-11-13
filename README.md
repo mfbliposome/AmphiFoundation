@@ -22,7 +22,6 @@ In this folder, it stores the data files for the foundation model related analys
 
 -  Original microscopy image data and vesicles detection results can be seen in [[Zenodo link](https://doi.org/10.5281/zenodo.17401465)]
 
-Note, in this repository, we have used the terms 'similar' and 'dissimilar' as a shorthand for hydrocarbon and fluorocarbon amphiphiles. However, in the manuscript, we have opted to use the formal name, hydrocarbon and fluorocarbon amphiphiles, to elucidate their chemical structures.
 
 
 
@@ -83,6 +82,14 @@ This folder contains the results produced by working notebooks.
 | **Chemprop** | Directed message-passing neural networks (D-MPNNs). Used to generate molecular latent space. | [Chemprop GitHub](https://github.com/chemprop/chemprop) | Follow installation guide in the [Chemprop documentation](https://chemprop.readthedocs.io/en/main/installation.html). |
 | **CheMeleon** | Based on the Chemprop architecture. Used to generate molecular latent space. | [CheMeleon Github](https://github.com/JacksonBurns/chemeleon) | See the setup instructions in the original repo: [CheMeleon documentation](https://github.com/JacksonBurns/chemeleon/blob/main/README.md).|
 | **SMI-TED** |  Transformer-based foundation model. Used to generate molecular latent space | [SMI-TED Github](https://github.com/IBM/materials) | See the setup instructions in the original repo: [SMI-TED documentation](https://github.com/IBM/materials/blob/main/README.md). |
+
+## Terminology Note
+In this repository, the following terminology is used for consistency with our analysis code and data:
+
+The term “vesicle” refers to liposomes, as described in the manuscript.
+
+The terms “similar” and “dissimilar” are used as shorthand for hydrocarbon and fluorocarbon amphiphiles, respectively.
+In the manuscript, we use the formal names hydrocarbon amphiphile and fluorocarbon amphiphile to more clearly describe their chemical structures.
 
 
 ## Citation
