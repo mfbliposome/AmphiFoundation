@@ -20,7 +20,7 @@ In this folder, it stores the data files for the foundation model related analys
 
   See details in here: [[Data description](https://github.com/hliu56/AmphiFoundation/blob/main/data/README.md)]
 
--  Original microscopy image data and vesicles detection results can be seen in [[Zenodo link](https://doi.org/10.5281/zenodo.17401465)]
+-  Original microscopy image data and vesicles detection results can be seen in [[Zenodo link](https://doi.org/10.5281/zenodo.17594560)]
 
 
 
