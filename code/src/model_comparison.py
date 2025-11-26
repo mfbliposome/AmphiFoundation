@@ -58,7 +58,8 @@ def evaluate_model_performance(
     save_plot_name: str = 'roc_auc_curve',
     data_type: str = None,
     model_type: str = None,
-    random_state: int = 42
+    random_state: int = 42,
+    save_dir='../../results'
 ):
     """
     Evaluate classifier performance over multiple random splits and plot ROC-AUC curves.
@@ -75,6 +76,7 @@ def evaluate_model_performance(
     - model_type: 'Baseline', 'VICGAE', 'Chemprop', 'Chemeleon', 'SMI-TED'
     - random_state: Base seed to allow reproducibility.
     """
+    os.makedirs(save_dir, exist_ok=True)
     all_fpr = np.linspace(0, 1, 100)
     roc_aucs = []
     interp_tprs = []
@@ -124,7 +126,7 @@ def evaluate_model_performance(
     auc_df['mean_auc'] = mean_auc
     auc_df['std_auc'] = std_auc
 
-    auc_df.to_csv(f"../../results/{model_type}_{data_type}_{output_csv_name}.csv", index=False)
+    auc_df.to_csv(os.path.join(save_dir, f"{model_type}_{data_type}_{output_csv_name}.csv"), index=False)
 
     # Plot
     fig, ax = plt.subplots()
@@ -144,7 +146,7 @@ def evaluate_model_performance(
     ax.legend(loc='lower right')
 
     if save_plot_name:
-        plt.savefig(f"../../results/{model_type}_{data_type}_{save_plot_name}.png", dpi=600, bbox_inches='tight')
+        plt.savefig(os.path.join(save_dir, f"{model_type}_{data_type}_{save_plot_name}_d.png"), dpi=600, bbox_inches='tight')
     plt.show()
 
     return auc_df, all_classifiers
