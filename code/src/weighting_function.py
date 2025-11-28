@@ -74,7 +74,7 @@ def prepare_structured_df(
     
     df_structured = pd.DataFrame(new_data)
     
-    # rename to smi1, conc1, ..., vesicles_formation
+    # rename 
     final_names = [
         'smi1', 'conc1',
         'smi2', 'conc2',
@@ -96,8 +96,7 @@ def prepare_latent_dataset_am(df_structured, latent_fn):
     df_structured: dataframe (with smi1…smi7 and conc1…conc7 + vesicles_formation)
     and returns a latent-space dataframe with the binarized vesicle label.
 
-    latent_fn: a function that computes latent space given df_structured
-               e.g., get_latent_space, get_latent_space_m, etc.
+    latent_fn: a function that computes latent space given.
 
     """
     
