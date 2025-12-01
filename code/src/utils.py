@@ -221,7 +221,7 @@ def plot_PCA(df_total):
     fig = go.Figure(data=traces, layout=layout)
     pio.show(fig)
 
-    # 6. Explained Variance Plot
+    # Explained Variance Plot
     plt.figure(figsize=(6,4))
     sns.barplot(x=[f'PC{i+1}' for i in range(10)], y=explained_variance*100, color='skyblue')
     plt.ylabel('Explained Variance (%)')
@@ -242,14 +242,6 @@ def binarize_last_column(df):
     last_col = df_bin.columns[-1]
     df_bin[last_col] = (df_bin[last_col] > 0).astype(int)
     return df_bin
-
-# def get_classifier(xtrain, ytrain):
-
-#     # Train XGBoost classifier
-#     xgb_clf = XGBClassifier(n_estimators=5000, learning_rate=0.01, max_depth=10, use_label_encoder=False, eval_metric='logloss')
-#     xgb_clf.fit(xtrain, ytrain)
-    
-#     return xgb_clf
 
 def reverse_log1p(transformed_value):
   
