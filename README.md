@@ -95,7 +95,34 @@ In the manuscript, we use the formal names hydrocarbon amphiphile and fluorocarb
 ## Citation
 
 If you use this repository in your research, please cite it as follows: 
-TBD
+```
+@article{doi:10.1021/acs.langmuir.5c06509,
+author = {Liu, Hao and Ekosso, Christelle and Glagovich, Avery and Maurer, Sarah and Schrier, Joshua},
+title = {Molecular Foundation Models for Predicting Self-Assembly in Aqueous Mixtures},
+journal = {Langmuir},
+volume = {0},
+number = {0},
+pages = {null},
+year = {0},
+doi = {10.1021/acs.langmuir.5c06509},
+
+URL = { 
+    
+        https://doi.org/10.1021/acs.langmuir.5c06509
+    
+    
+
+},
+eprint = { 
+    
+        https://doi.org/10.1021/acs.langmuir.5c06509
+    
+    
+
+}
+
+}
+```
 
 ## License
 
