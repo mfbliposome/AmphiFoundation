@@ -105,23 +105,8 @@ number = {0},
 pages = {null},
 year = {0},
 doi = {10.1021/acs.langmuir.5c06509},
-
-URL = { 
-    
-        https://doi.org/10.1021/acs.langmuir.5c06509
-    
-    
-
-},
-eprint = { 
-    
-        https://doi.org/10.1021/acs.langmuir.5c06509
-    
-    
-
-}
-
-}
+URL = {https://doi.org/10.1021/acs.langmuir.5c06509},
+eprint = {https://doi.org/10.1021/acs.langmuir.5c06509}}
 ```
 
 ## License
